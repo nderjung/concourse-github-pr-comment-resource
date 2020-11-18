@@ -1,0 +1,6 @@
+// CONCOURSE
+.credentials.yml
+
+// GO
+coverage.out
+dist/

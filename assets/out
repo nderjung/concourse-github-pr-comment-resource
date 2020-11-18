@@ -1,0 +1,3 @@
+#!/bin/bash
+
+/bin/github-pr-comment out $1

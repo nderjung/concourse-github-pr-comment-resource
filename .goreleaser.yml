@@ -1,0 +1,34 @@
+release:
+  prerelease: false
+
+builds:
+  - binary: dist/github-pr-comment
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.buildTime={{.Date}}`.
+
+dockers:
+  - binaries:
+      - github-pr-comment
+    dockerfile: Dockerfile
+    # todo: on 1.0 remove 'v' prefix
+    image_templates:
+      - "ndrjng/concourse-github-pr-resource-resource:latest"
+      - "ndrjng/concourse-github-pr-resource-resource:{{ .Tag }}"
+      - "ndrjng/concourse-github-pr-resource-resource:v{{ .Major }}"
+      - "ndrjng/concourse-github-pr-resource-resource:v{{ .Major }}.{{ .Minor }}"
+    extra_files:
+      - go.mod
+      - go.sum
+      - main.go
+      - cmd/
+      - api/
+      - actions/
+      - assets/
+      - Makefile
+
+
