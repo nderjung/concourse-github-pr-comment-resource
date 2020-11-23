@@ -29,7 +29,7 @@ The following parameters are used for the resource's `source` configuration:
 | `ignore_labels`      | No       | `["lifecycle/stale"]`                       | `[]`                     | The labels of the pull request not to react on.                                                                                                                                                                                               |
 | `comments`           | No       | `["^ping$"]`                                | `[]`                     | The regular expressions of the latest comment to react on.                                                                                                                                                                                    |
 | `ignore_comments`    | No       | `["ing$"]`                                  | `[]`                     | The regular expressions of the latest comment not to react on.                                                                                                                                                                                |
-| `map_comments_meta`  | No       | `true`                                      | `false`                  | Whether to map any regular expression keys and their corresponding values to the meta object provided in `in`.                                                                                                                                |
+| `map_comment_meta`   | No       | `true`                                      | `false`                  | Whether to map any regular expression keys and their corresponding values to the meta object provided in `in`.                                                                                                                                |
 
 ## Behaviour
 
@@ -62,7 +62,7 @@ resource.
 | `html_url`           | The URL to the comment.                                                   |
 | `user_id`            | The unique ID of the comment author on Github.                            |
 | `user_login`         | The username of the comment author on Github.                             |
-| `user_name`          | The name of the comment author on Github.                               |
+| `user_name`          | The name of the comment author on Github.                                 |
 | `user_email`         | The email of the comment author on Github.                                |
 | `user_avatar_url`    | The avatar URL for the comment author.                                    |
 | `user_html_url`      | The URL to the comment author's profile on Github.                        |
