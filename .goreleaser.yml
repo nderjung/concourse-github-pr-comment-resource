@@ -17,10 +17,10 @@ dockers:
     dockerfile: Dockerfile
     # todo: on 1.0 remove 'v' prefix
     image_templates:
-      - "ndrjng/concourse-github-pr-resource-resource:latest"
-      - "ndrjng/concourse-github-pr-resource-resource:{{ .Tag }}"
-      - "ndrjng/concourse-github-pr-resource-resource:v{{ .Major }}"
-      - "ndrjng/concourse-github-pr-resource-resource:v{{ .Major }}.{{ .Minor }}"
+      - "ndrjng/concourse-github-pr-comment-resource:latest"
+      - "ndrjng/concourse-github-pr-comment-resource:{{ .Tag }}"
+      - "ndrjng/concourse-github-pr-comment-resource:v{{ .Major }}"
+      - "ndrjng/concourse-github-pr-comment-resource:v{{ .Major }}.{{ .Minor }}"
     extra_files:
       - go.mod
       - go.sum
