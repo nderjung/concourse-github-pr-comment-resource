@@ -224,7 +224,6 @@ func (c *GithubClient) DeleteLastPullRequestComment(prID int) error {
   // Only delete the last comment from the same author as the provided token
   var commentID int64
   for _, comment := range comments {
-    fmt.Print(*comment.User.ID)
     if *comment.User.ID == *user.ID {
       commentID = *comment.ID
     }
