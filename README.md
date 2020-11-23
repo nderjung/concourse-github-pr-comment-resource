@@ -29,6 +29,7 @@ The following parameters are used for the resource's `source` configuration:
 | `ignore_labels`      | No       | `["lifecycle/stale"]`                       | `[]`                     | The labels of the pull request not to react on.                                                                                                                                                                                               |
 | `comments`           | No       | `["^ping$"]`                                | `[]`                     | The regular expressions of the latest comment to react on.                                                                                                                                                                                    |
 | `ignore_comments`    | No       | `["ing$"]`                                  | `[]`                     | The regular expressions of the latest comment not to react on.                                                                                                                                                                                |
+| `map_comments_meta`  | No       | `true`                                      | `false`                  | Whether to map any regular expression keys and their corresponding values to the meta object provided in `in`.                                                                                                                                |
 
 ## Behaviour
 
@@ -42,7 +43,7 @@ Concourse is Github's unique numerical ID for the comment.
 
 The following parameters may be used in the `get` step of the resource:
 
-| Parameter      | Required |  Default      | Description                                    |
+| Parameter      | Required | Default       | Description                                    |
 | -------------- | -------- | ------------- | ---------------------------------------------- |
 | `comment_file` | No       | `comment.txt` | A unique path to save the body of the comment. |
 
@@ -59,8 +60,10 @@ resource.
 | `updated_at`         | The timestamp of when the comment was last updated.                       |
 | `author_association` | The association the author of the comment has with the repository.        |
 | `html_url`           | The URL to the comment.                                                   |
-| `user_login`         | The username of the comment author on Github.                             |
 | `user_id`            | The unique ID of the comment author on Github.                            |
+| `user_login`         | The username of the comment author on Github.                             |
+| `user_name`          | The name of the comment author on Github.                               |
+| `user_email`         | The email of the comment author on Github.                                |
 | `user_avatar_url`    | The avatar URL for the comment author.                                    |
 | `user_html_url`      | The URL to the comment author's profile on Github.                        |
 
@@ -69,7 +72,9 @@ formatted files which contain the information about the PR comment:
 
  * `version.json` which contains only contains the unique ID of the Github
    comment to the PR; and,
- * `metadata.json` which contains a serialized version of the table above.
+ * `metadata.json` which contains a serialized version of the table above,
+ * Any additional attributes mapped from parsing comments using Golang's name
+   grouping.  More details can be found [here](https://golang.org/pkg/regexp/syntax/).
 
 ### `out`
 

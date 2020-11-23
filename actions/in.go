@@ -34,6 +34,7 @@ import (
   "os"
   "fmt"
   "time"
+  "regexp"
   "strconv"
 	"io/ioutil"
   "encoding/json"
@@ -181,6 +182,16 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
     UserHTMLURL:       *comment.User.HTMLURL,
   })
 
+  if req.Source.MapCommentMeta {
+    for _, commentStr := range req.Source.Comments {
+      extraMeta := getParams(commentStr, *comment.Body)
+
+      for k, v := range extraMeta {
+        metadata.Add(k, v)
+      }
+    }
+  }
+
   b, err := json.Marshal(req.Version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal version: %s", err)
@@ -212,4 +223,19 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
     Version:  req.Version,
     Metadata: metadata,
   }, nil
+}
+
+
+func getParams(regEx, comment string) (paramsMap map[string]string) {
+  var compRegEx = regexp.MustCompile(regEx)
+  match := compRegEx.FindStringSubmatch(comment)
+
+  paramsMap = make(map[string]string)
+  for i, name := range compRegEx.SubexpNames() {
+    if i > 0 && i <= len(match) {
+      paramsMap[name] = match[i]
+    }
+  }
+
+  return
 }

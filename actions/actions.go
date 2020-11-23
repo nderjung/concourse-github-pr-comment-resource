@@ -62,6 +62,7 @@ type Source struct {
   Labels               []string `json:"labels"`
   Comments             []string `json:"comments"`
   CommenterAssociation []string `json:"commenter_association"`
+  MapCommentMeta         bool   `json:"map_comment_meta"`
   
   IgnoreStates         []string `json:"ignore_states"`
   IgnoreLabels         []string `json:"ignore_labels"`
