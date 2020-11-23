@@ -66,6 +66,10 @@ resource.
 | `user_email`         | The email of the comment author on Github.                                |
 | `user_avatar_url`    | The avatar URL for the comment author.                                    |
 | `user_html_url`      | The URL to the comment author's profile on Github.                        |
+| `pr_head_ref`        | The branch name from the HEAD of Pull Request.                            |
+| `pr_head_sha`        | The commit SHA from the HEAD of the Pull Request.                         |
+| `pr_base_ref`        | The branch name from the base of the Pull Request.                        |
+| `pr_base_sha`        | The commit SHA from the base of the Pull Request.                         |
 
 Additionally, the `in`/get step of this resource produces two additional JSON
 formatted files which contain the information about the PR comment:

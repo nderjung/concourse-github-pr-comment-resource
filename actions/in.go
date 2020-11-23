@@ -73,6 +73,10 @@ type InResponse struct {
 
 type InMetadata struct {
   PRID              int       `json:"pr_id"`
+  PRHeadRef        string     `json:"pr_head_ref"`
+  PRHeadSHA         string    `json:"pr_head_sha"`
+  PRBaseRef        string     `json:"pr_base_ref"`
+  PRBaseSHA         string    `json:"pr_base_sha"`
   CommentID         int64     `json:"comment_id"`
   Body              string    `json:"body"`
   CreatedAt         time.Time `json:"created_at"`
@@ -84,6 +88,7 @@ type InMetadata struct {
   UserAvatarURL     string    `json:"user_avatar_url"`
   UserHTMLURL       string    `json:"user_html_url"`
 }
+
 
 func doInCmd(cmd *cobra.Command, args []string) {
   decoder := json.NewDecoder(os.Stdin)
@@ -168,8 +173,17 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
     return nil, err
   }
 
+  pull, err := client.GetPullRequest(prNumber)
+  if err != nil {
+    return nil, err
+  }
+
   metadata := serializeMetadata(InMetadata{
-    PRID:              prNumber,
+    PRID:               prNumber,
+    PRHeadRef:         *pull.Head.Ref,
+    PRHeadSHA:         *pull.Head.SHA,
+    PRBaseRef:         *pull.Base.Ref,
+    PRBaseSHA:         *pull.Base.SHA,
     CommentID:         *comment.ID,
     Body:              *comment.Body,
     CreatedAt:         *comment.CreatedAt,
@@ -224,7 +238,6 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
     Metadata: metadata,
   }, nil
 }
-
 
 func getParams(regEx, comment string) (paramsMap map[string]string) {
   var compRegEx = regexp.MustCompile(regEx)
