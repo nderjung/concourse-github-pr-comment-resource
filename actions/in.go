@@ -36,9 +36,9 @@ import (
   "time"
   "regexp"
   "strconv"
-	"io/ioutil"
+  "io/ioutil"
   "encoding/json"
-	"path/filepath"
+  "path/filepath"
 
   "github.com/spf13/cobra"
   "github.com/nderjung/concourse-github-pr-comment-resource/api"
@@ -207,31 +207,31 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
   }
 
   b, err := json.Marshal(req.Version)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal version: %s", err)
+  if err != nil {
+    return nil, fmt.Errorf("failed to marshal version: %s", err)
   }
 
-	if err := ioutil.WriteFile(filepath.Join(path, "version.json"), b, 0644); err != nil {
-		return nil, fmt.Errorf("failed to write version: %s", err)
+  if err := ioutil.WriteFile(filepath.Join(path, "version.json"), b, 0644); err != nil {
+    return nil, fmt.Errorf("failed to write version: %s", err)
   }
 
-	b, err = json.Marshal(metadata)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal metadata: %s", err)
-	}
+  b, err = json.Marshal(metadata)
+  if err != nil {
+    return nil, fmt.Errorf("failed to marshal metadata: %s", err)
+  }
 
   if err := ioutil.WriteFile(filepath.Join(path, "metadata.json"), b, 0644); err != nil {
-		return nil, fmt.Errorf("failed to write metadata: %s", err)
-	}
+    return nil, fmt.Errorf("failed to write metadata: %s", err)
+  }
 
   // Save the individual metadata items to seperate files
-	for _, d := range metadata {
+  for _, d := range metadata {
     filename := d.Name
-		content := []byte(d.Value)
-		if err := ioutil.WriteFile(filepath.Join(path, filename), content, 0644); err != nil {
-			return nil, fmt.Errorf("failed to write metadata file %s: %s", filename, err)
-		}
-	}
+    content := []byte(d.Value)
+    if err := ioutil.WriteFile(filepath.Join(path, filename), content, 0644); err != nil {
+      return nil, fmt.Errorf("failed to write metadata file %s: %s", filename, err)
+    }
+  }
 
   return &InResponse{
     Version:  req.Version,
