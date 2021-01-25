@@ -48,15 +48,15 @@ type Git interface {
 }
 
 // NewGitClient ...
-func NewGitClient(source *Source, dir string, output io.Writer) (*GitClient, error) {
-	if source.SkipSSLVerification {
+func NewGitClient(accessToken string, skipSsl, disableGitLfs bool, dir string, output io.Writer) (*GitClient, error) {
+	if skipSsl {
 		os.Setenv("GIT_SSL_NO_VERIFY", "true")
 	}
-	if source.DisableGitLFS {
+	if disableGitLfs {
 		os.Setenv("GIT_LFS_SKIP_SMUDGE", "true")
 	}
 	return &GitClient{
-		AccessToken: source.AccessToken,
+		AccessToken: accessToken,
 		Directory:   dir,
 		Output:      output,
 	}, nil
