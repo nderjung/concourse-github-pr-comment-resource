@@ -55,7 +55,13 @@ var InCmd = &cobra.Command{
 
 // InParams are the parameters for configuring the input
 type InParams struct {
-  CommentFile string `json:"comment_file"`
+  CommentFile     string `json:"comment_file"`
+  SourcePath      string `json:"source_path"`
+  GitDepth        int    `json:"git_depth"`
+  Submodules      bool   `json:"submodules"`
+  SkipDownload    bool   `json:"skip_download"`
+  FetchTags       bool   `json:"fetch_tags"`
+  IntegrationTool string `json:"integration_tool"`
 }
 
 // InRequest from the check stdin.
@@ -230,6 +236,83 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
     content := []byte(d.Value)
     if err := ioutil.WriteFile(filepath.Join(path, filename), content, 0644); err != nil {
       return nil, fmt.Errorf("failed to write metadata file %s: %s", filename, err)
+    }
+  }
+
+  if !req.Params.SkipDownload {
+    // Set the destination path to save the HEAD of the PR
+    sourcePath := "source"
+    if req.Params.SourcePath != "" {
+      sourcePath = req.Params.SourcePath
+    }
+
+    sourcePath = filepath.Join(path, sourcePath)
+    if err := os.MkdirAll(sourcePath, os.ModePerm); err != nil {
+      return nil, fmt.Errorf("failed to create source directory: %s", err)
+    }
+
+    git, err := api.NewGitClient(
+      req.Source.AccessToken,
+      req.Source.SkipSSLVerification,
+      req.Source.DisableGitLfs,
+      sourcePath,
+      os.Stderr,
+    )
+    if err != nil {
+      return nil, fmt.Errorf("failed to initialize git client: %s", err)
+    }
+
+    // Initialize and pull the base for the PR
+    if err := git.Init(*pull.Base.Ref); err != nil {
+      return nil, fmt.Errorf("failed to initialize git repo: %s", err)
+    }
+
+    if err := git.Pull(
+      *pull.Base.Repo.GitURL,
+      *pull.Base.Ref,
+      req.Params.GitDepth,
+      req.Params.Submodules,
+      req.Params.FetchTags,
+    ); err != nil {
+      return nil, err
+    }
+
+    // Fetch the PR and merge the specified commit into the base
+    if err := git.Fetch(
+      *pull.Base.Repo.GitURL,
+      *pull.Number,
+      req.Params.GitDepth,
+      req.Params.Submodules,
+    ); err != nil {
+      return nil, err
+    }
+
+    switch tool := req.Params.IntegrationTool; tool {
+    case "rebase", "":
+      if err := git.Rebase(
+        *pull.Base.Ref,
+        *pull.Head.SHA,
+        req.Params.Submodules,
+      ); err != nil {
+        return nil, err
+      }
+    case "merge":
+      if err := git.Merge(
+        *pull.Head.SHA,
+        req.Params.Submodules,
+      ); err != nil {
+        return nil, err
+      }
+    case "checkout":
+      if err := git.Checkout(
+        *pull.Head.Ref,
+        *pull.Head.SHA,
+        req.Params.Submodules,
+      ); err != nil {
+        return nil, err
+      }
+    default:
+      return nil, fmt.Errorf("invalid integration tool specified: %s", tool)
     }
   }
 

@@ -44,9 +44,15 @@ Concourse is Github's unique numerical ID for the comment.
 
 The following parameters may be used in the `get` step of the resource:
 
-| Parameter      | Required | Default       | Description                                    |
-| -------------- | -------- | ------------- | ---------------------------------------------- |
-| `comment_file` | No       | `comment.txt` | A unique path to save the body of the comment. |
+| Parameter          | Required | Default       | Description                                                                  |
+| ------------------ | -------- | ------------- | ---------------------------------------------------------------------------- |
+| `comment_file`     | No       | `comment.txt` | A unique path to save the body of the comment.                               |
+| `source_path`      | No       | `source`      | The path to save the source within the resource.                             |
+| `git_depth`        | No       | `0`           | Git clone depth.                                                             |
+| `submodules`       | No       | `false`       | Whether to clone Git submodules.                                             |
+| `fetch_tags`       | No       | `false`       | Whether to fetch Git tags.                                                   |
+| `integration_tool` | No       | `rebase`      | How to merge the PR source, selection between `rebase`, `merge`, `checkout`. |
+| `skip_download`    | No       | `false`       | Does not clone the pull request.                                             |
 
 The `in` procedure of this resource retrieves the following metadata about the
 pull request comment and saves the key as the filename to the `path` set by the
