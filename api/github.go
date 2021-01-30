@@ -55,8 +55,10 @@ type GithubClient struct {
 type Github interface {
   ListPullRequests() ([]*github.PullRequest, error)
   GetPullRequest(prID int) (*github.PullRequest, error)
-  ListPullRequestComments(prID int) ([]*github.IssueComment, error)
+  ListPullRequestComments(prID int) ([]*github.PullRequestComment, error)
+  ListPullRequestReviews(prID int) ([]*github.PullRequestReview, error)
   GetPullRequestComment(commentID int64) (*github.IssueComment, error)
+  GetPullRequestReview(prID int, reviewID int64) (*github.PullRequestReview, error)
   SetPullRequestState(prID int, state string) error
   DeleteLastPullRequestComment(prID int) error
   AddPullRequestLabels(prID int, labels []string) error
@@ -151,19 +153,34 @@ func (c *GithubClient) GetPullRequest(prID int) (*github.PullRequest, error) {
 
 // ListPullRequestComments returns the list of comments for the specific pull
 // request given its ID relative to the configured repo
-func (c *GithubClient) ListPullRequestComments(prID int) ([]*github.IssueComment, error) {
-  comments, _, err := c.Client.Issues.ListComments(
+func (c *GithubClient) ListPullRequestComments(prID int) ([]*github.PullRequestComment, error) {
+  comments, _, err := c.Client.PullRequests.ListComments(
     context.TODO(),
     c.Owner,
     c.Repository,
     prID,
-    &github.IssueListCommentsOptions{},
+    &github.PullRequestListCommentsOptions{},
   )
   if err != nil {
     return nil, err
   }
-  
   return comments, nil
+}
+
+// ListPullRequestReviews returns the list of reviews for the specific pull
+// request given its ID relative to the configured repo
+func (c *GithubClient) ListPullRequestReviews(prID int) ([]*github.PullRequestReview, error) {
+  reviews, _, err := c.Client.PullRequests.ListReviews(
+    context.TODO(),
+    c.Owner,
+    c.Repository,
+    prID,
+    &github.ListOptions{},
+  )
+  if err != nil {
+    return nil, err
+  }
+  return reviews, nil
 }
 
 // GetPulLRequestComment returns the specific comment given its unique Github ID
@@ -179,6 +196,22 @@ func (c *GithubClient) GetPullRequestComment(commentID int64) (*github.IssueComm
   }
   
   return comment, nil
+}
+
+// GetPulLRequestReview returns the specific review given its unique Github ID
+func (c *GithubClient) GetPullRequestReview(prID int, reviewID int64) (*github.PullRequestReview, error) {
+  review, _, err := c.Client.PullRequests.GetReview(
+    context.TODO(),
+    c.Owner,
+    c.Repository,
+    prID,
+    reviewID,
+  )
+  if err != nil {
+    return nil, err
+  }
+  
+  return review, nil
 }
 
 func (c *GithubClient) SetPullRequestState(prID int, state string) error {

@@ -139,9 +139,44 @@ func Check(req CheckRequest) (*CheckResponse, error) {
         continue
       }
 
+      // Retrieve the PR number from the given URL
+      prID, err := api.ParseCommentHTMLURL(*comment.HTMLURL)
+      if err != nil {
+        return nil, err
+      }
+
       // Add the comment ID to the list of versions we want Concourse to see
       versions = append(versions, Version{
-        Ref: strconv.FormatInt(*comment.ID, 10),
+        PrID:      strconv.Itoa(prID),
+        CommentID: strconv.FormatInt(*comment.ID, 10),
+      })
+    }
+
+    // Iterate through all the reviews for this PR
+    reviews, err := client.ListPullRequestReviews(int(*pull.Number))
+    if err != nil {
+      return nil, err
+    }
+
+    for _, review := range reviews {
+      if !req.Source.requestsCommenterAssociation(*review.AuthorAssociation) {
+        continue
+      }
+
+      // Retrieve the PR number from the given URL
+      prID, err := api.ParseCommentHTMLURL(*review.HTMLURL)
+      if err != nil {
+        return nil, err
+      }
+      
+      if !req.Source.requestsCommentRegex(*review.Body) {
+        continue
+      }
+
+      // Add the comment ID to the list of versions we want Concourse to see
+      versions = append(versions, Version{
+        PrID:     strconv.Itoa(prID),
+        ReviewID: strconv.FormatInt(*review.ID, 10),
       })
     }
   }

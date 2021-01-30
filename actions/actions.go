@@ -72,7 +72,9 @@ type Source struct {
 
 // Version communicated with Concourse.
 type Version struct {
-  Ref string `json:"ref"`
+  PrID      string `json:"pr_id"`
+  ReviewID  string `json:"review_id"`
+  CommentID string `json:"comment_id"`
 }
 
 // Metadata has a key name and value

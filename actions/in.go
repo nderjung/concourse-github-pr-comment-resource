@@ -79,9 +79,9 @@ type InResponse struct {
 
 type InMetadata struct {
   PRID              int       `json:"pr_id"`
-  PRHeadRef        string     `json:"pr_head_ref"`
+  PRHeadRef         string    `json:"pr_head_ref"`
   PRHeadSHA         string    `json:"pr_head_sha"`
-  PRBaseRef        string     `json:"pr_base_ref"`
+  PRBaseRef         string    `json:"pr_base_ref"`
   PRBaseSHA         string    `json:"pr_base_sha"`
   CommentID         int64     `json:"comment_id"`
   Body              string    `json:"body"`
@@ -134,13 +134,21 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
     return nil, err
   }
 
-  commentID, err := strconv.ParseInt(req.Version.Ref, 10, 64)
+  prId, _ := strconv.ParseInt(req.Version.PrID, 10, 64)
+  reviewId, _ := strconv.ParseInt(req.Version.ReviewID, 10, 64)
+  commentId, _ := strconv.ParseInt(req.Version.CommentID, 10, 64)
+
+  pull, err := client.GetPullRequest(int(prId))
   if err != nil {
     return nil, err
   }
-  comment, err := client.GetPullRequestComment(commentID)
-  if err != nil {
-    return nil, err
+
+  metadata := InMetadata{
+    PRID:       int(prId),
+    PRHeadRef: *pull.Head.Ref,
+    PRHeadSHA: *pull.Head.SHA,
+    PRBaseRef: *pull.Base.Ref,
+    PRBaseSHA: *pull.Base.SHA,
   }
 
   // Write comment, version and metadata for reuse in PUT
@@ -168,48 +176,78 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
     return nil, err
   }
 
-  _, err = f.WriteString(*comment.Body)
-  if err != nil {
-    return nil, err
-  }
+  var serialized Metadata
 
-  // Retrieve the PR number from the given URL
-  prNumber, err := api.ParseCommentHTMLURL(*comment.HTMLURL)
-  if err != nil {
-    return nil, err
-  }
+  if commentId > 0 {
+    comment, err := client.GetPullRequestComment(commentId)
+    if err != nil {
+      return nil, fmt.Errorf("could not retrieve comment: %s", err)
+    }
 
-  pull, err := client.GetPullRequest(prNumber)
-  if err != nil {
-    return nil, err
-  }
+    metadata.CommentID = *comment.ID
+    metadata.Body = *comment.Body
+    metadata.CreatedAt = *comment.CreatedAt
+    metadata.UpdatedAt = *comment.UpdatedAt
+    metadata.AuthorAssociation = *comment.AuthorAssociation
+    metadata.HTMLURL = *comment.HTMLURL
+    metadata.UserLogin = *comment.User.Login
+    metadata.UserID = *comment.User.ID
+    metadata.UserAvatarURL = *comment.User.AvatarURL
+    metadata.UserHTMLURL = *comment.User.HTMLURL
+    
+    serialized = serializeMetadata(metadata)
 
-  metadata := serializeMetadata(InMetadata{
-    PRID:               prNumber,
-    PRHeadRef:         *pull.Head.Ref,
-    PRHeadSHA:         *pull.Head.SHA,
-    PRBaseRef:         *pull.Base.Ref,
-    PRBaseSHA:         *pull.Base.SHA,
-    CommentID:         *comment.ID,
-    Body:              *comment.Body,
-    CreatedAt:         *comment.CreatedAt,
-    UpdatedAt:         *comment.UpdatedAt,
-    AuthorAssociation: *comment.AuthorAssociation,
-    HTMLURL:           *comment.HTMLURL,
-    UserLogin:         *comment.User.Login,
-    UserID:            *comment.User.ID,
-    UserAvatarURL:     *comment.User.AvatarURL,
-    UserHTMLURL:       *comment.User.HTMLURL,
-  })
-
-  if req.Source.MapCommentMeta {
-    for _, commentStr := range req.Source.Comments {
-      extraMeta := getParams(commentStr, *comment.Body)
-
-      for k, v := range extraMeta {
-        metadata.Add(k, v)
+    if req.Source.MapCommentMeta {
+      for _, commentStr := range req.Source.Comments {
+        extraMeta := getParams(commentStr, *comment.Body)
+  
+        for k, v := range extraMeta {
+          serialized.Add(k, v)
+        }
       }
     }
+
+    _, err = f.WriteString(*comment.Body)
+    if err != nil {
+      return nil, err
+    }
+  } else if reviewId > 0 && prId > 0 {
+    review, err := client.GetPullRequestReview(
+      int(prId),
+      reviewId,
+    )
+    if err != nil {
+      return nil, fmt.Errorf("could not retrieve review: %s", err)
+    }
+    
+    metadata.CommentID = *review.ID
+    metadata.Body = *review.Body
+    metadata.CreatedAt = *review.SubmittedAt
+    metadata.AuthorAssociation = *review.AuthorAssociation
+    metadata.HTMLURL = *review.HTMLURL
+    metadata.UserLogin = *review.User.Login
+    metadata.UserID = *review.User.ID
+    metadata.UserAvatarURL = *review.User.AvatarURL
+    metadata.UserHTMLURL = *review.User.HTMLURL
+    
+    serialized = serializeMetadata(metadata)
+
+    if req.Source.MapCommentMeta {
+      for _, commentStr := range req.Source.Comments {
+        extraMeta := getParams(commentStr, *review.Body)
+  
+        for k, v := range extraMeta {
+          serialized.Add(k, v)
+        }
+      }
+    }
+
+    _, err = f.WriteString(*review.Body)
+    if err != nil {
+      return nil, err
+    }
+  } else {
+    return nil, fmt.Errorf("cannot extrapolate version")
   }
 
   b, err := json.Marshal(req.Version)
@@ -221,7 +259,7 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
     return nil, fmt.Errorf("failed to write version: %s", err)
   }
 
-  b, err = json.Marshal(metadata)
+  b, err = json.Marshal(serialized)
   if err != nil {
     return nil, fmt.Errorf("failed to marshal metadata: %s", err)
   }
@@ -231,7 +269,7 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
   }
 
   // Save the individual metadata items to seperate files
-  for _, d := range metadata {
+  for _, d := range serialized {
     filename := d.Name
     content := []byte(d.Value)
     if err := ioutil.WriteFile(filepath.Join(path, filename), content, 0644); err != nil {
@@ -318,7 +356,7 @@ func In(outputDir string, req InRequest) (*InResponse, error) {
 
   return &InResponse{
     Version:  req.Version,
-    Metadata: metadata,
+    Metadata: serialized,
   }, nil
 }
 
