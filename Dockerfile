@@ -54,7 +54,7 @@ WORKDIR /go/src/github.com/${ORG}/${REPO}
 RUN set -xe; \
     BUILDPATH=/github-pr-comment make build
 
-FROM concourse/buildroot:base AS run
+FROM concourse/buildroot:git AS run
 
 ARG BIN=github-pr-resource
 
