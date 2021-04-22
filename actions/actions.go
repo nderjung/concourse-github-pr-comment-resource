@@ -65,6 +65,7 @@ type Source struct {
   CommenterAssociation []string `json:"commenter_association"`
   MapCommentMeta         bool   `json:"map_comment_meta"`
   ReviewStates         []string `json:"review_states"`
+  When                   string `json:"when"` // all, latest, first
   
   IgnoreStates         []string `json:"ignore_states"`
   IgnoreLabels         []string `json:"ignore_labels"`

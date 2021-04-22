@@ -93,8 +93,13 @@ func Check(req CheckRequest) (*CheckResponse, error) {
   if err != nil {
     return nil, err
   }
+
+  if len(req.Source.When) == 0 {
+    req.Source.When = "latest"
+  }
   
   var versions CheckResponse
+  var version *Version
 
   // Get all pull requests
   pulls, err := client.ListPullRequests()
@@ -104,6 +109,8 @@ func Check(req CheckRequest) (*CheckResponse, error) {
 
   // Iterate over all pull requests
   for _, pull := range pulls {
+    version = nil
+
     // Ignore if state not requested
     if !req.Source.requestsState(*pull.State) {
       continue
@@ -130,26 +137,43 @@ func Check(req CheckRequest) (*CheckResponse, error) {
       return nil, err
     }
 
+    latestCommentIsMatch := false
+
     for _, comment := range comments {
+      // Ignore comments which do not match comment author association
       if !req.Source.requestsCommenterAssociation(*comment.AuthorAssociation) {
+        latestCommentIsMatch = false
         continue
       }
 
+      // Ignore comments which do not match regex
       if !req.Source.requestsCommentRegex(*comment.Body) {
+        latestCommentIsMatch = false
         continue
       }
 
-      // Retrieve the PR number from the given URL
-      prID, err := api.ParseCommentHTMLURL(*comment.HTMLURL)
-      if err != nil {
-        return nil, err
-      }
+      latestCommentIsMatch = true
 
       // Add the comment ID to the list of versions we want Concourse to see
-      versions = append(versions, Version{
-        PrID:      strconv.Itoa(prID),
+      version = &Version{
+        PrID:      strconv.Itoa(*pull.Number),
         CommentID: strconv.FormatInt(*comment.ID, 10),
-      })
+      }
+
+      if req.Source.When == "all" || req.Source.When == "first" {
+        versions = append(versions, *version)
+      }
+
+      // Break the loop now since we found the first match, causing the above
+      // statement to be valid for only "all"
+      if req.Source.When == "first" {
+        break
+      }
+    }
+
+    // Only save the latest 
+    if req.Source.When == "latest" && latestCommentIsMatch {
+      versions = append(versions, *version)
     }
 
     // Iterate through all the reviews for this PR
@@ -158,26 +182,42 @@ func Check(req CheckRequest) (*CheckResponse, error) {
       return nil, err
     }
 
+    latestReviewIsMatch := false
+
     for _, review := range reviews {
-      if !req.Source.requestsCommenterAssociation(*review.AuthorAssociation) {
+      // Ignore reviews which do not approve the 
+      if !req.Source.requestsReviewState(*review.State) {
+        latestReviewIsMatch = false
         continue
       }
 
-      // Retrieve the PR number from the given URL
-      prID, err := api.ParseCommentHTMLURL(*review.HTMLURL)
-      if err != nil {
-        return nil, err
-      }
-      
       if !req.Source.requestsCommentRegex(*review.Body) {
+        latestReviewIsMatch = false
         continue
       }
+
+      latestReviewIsMatch = true
 
       // Add the comment ID to the list of versions we want Concourse to see
-      versions = append(versions, Version{
-        PrID:     strconv.Itoa(prID),
+      version = &Version{
+        PrID:     strconv.Itoa(*pull.Number),
         ReviewID: strconv.FormatInt(*review.ID, 10),
-      })
+      }
+
+      if req.Source.When == "all" || req.Source.When == "first" {
+        versions = append(versions, *version)
+      }
+
+      // Break the loop now since we found the first match, causing the above
+      // statement to be valid for only "all"
+      if req.Source.When == "first" {
+        break
+      }
+    }
+
+    // Only save the latest 
+    if req.Source.When == "latest" && latestReviewIsMatch {
+      versions = append(versions, *version)
     }
   }
 
