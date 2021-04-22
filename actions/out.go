@@ -152,7 +152,7 @@ func Out(inputDir string, req OutRequest) (*OutResponse, error) {
 	if err := json.Unmarshal(content, &metadata); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal metadata from file: %s", err)
   }
-  
+
   prNumber, err := metadata.Get("pr_id")
   if err != nil {
     return nil, err
