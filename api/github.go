@@ -127,6 +127,10 @@ func (c *GithubClient) ListPullRequests() ([]*github.PullRequest, error) {
     &github.PullRequestListOptions{
       // We want all states so we can sort through them later
       State: "all",
+      ListOptions: github.ListOptions{
+        // TODO: We need to break up requests and be good API consumers
+        PerPage: 1000,
+      },
     },
   )
   if err != nil {
