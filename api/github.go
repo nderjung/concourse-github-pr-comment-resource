@@ -157,8 +157,8 @@ func (c *GithubClient) GetPullRequest(prID int) (*github.PullRequest, error) {
 
 // ListPullRequestComments returns the list of comments for the specific pull
 // request given its ID relative to the configured repo
-func (c *GithubClient) ListPullRequestComments(prID int) ([]*github.PullRequestComment, error) {
-  comments, _, err := c.Client.PullRequests.ListComments(
+func (c *GithubClient) ListPullRequestComments(prID int) ([]*github.IssueComment, error) {
+  comments, _, err := c.Client.Issues.ListComments(
     context.TODO(),
     c.Owner,
     c.Repository,
