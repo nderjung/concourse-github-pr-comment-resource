@@ -72,7 +72,7 @@ func (p *OutParams) Validate() error {
   var allowedState bool
 
   state := strings.ToLower(p.State)
-  allowed := []string{"open", "closed"}
+  allowed := []string{"open", "closed", "merged"}
 
   for _, a := range allowed {
     if state == a {
