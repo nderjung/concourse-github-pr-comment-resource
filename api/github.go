@@ -163,7 +163,12 @@ func (c *GithubClient) ListPullRequestComments(prID int) ([]*github.IssueComment
     c.Owner,
     c.Repository,
     prID,
-    &github.PullRequestListCommentsOptions{},
+    &github.IssueListCommentsOptions{
+      ListOptions: github.ListOptions{
+        // TODO: We need to break up requests and be good API consumers
+        PerPage: 1000,
+      },
+    },
   )
   if err != nil {
     return nil, err
