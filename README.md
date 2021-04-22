@@ -31,6 +31,7 @@ The following parameters are used for the resource's `source` configuration:
 | `commenter_association` | No       | `["first_time_contributor", "first_timer"]` | `["all"]`                | The comment author's relationship with the pull request's repository. Possible values include any of or any combination of `"collaborator"`, `"contributor"`, `"first_timer"`, `"first_time_contributor"`, `"member"`, `"owner"`, or `"all"`. |
 | `ignore_comments`       | No       | `["ing$"]`                                  | `[]`                     | The regular expressions of the latest comment not to react on.                                                                                                                                                                                |
 | `map_comment_meta`      | No       | `true`                                      | `false`                  | Whether to map any regular expression keys and their corresponding values to the meta object provided in `in`.                                                                                                                                |
+| `review_states`         | No       | `["commented", "changes_requested"]`        | `[]`                     | The state of the review, any combination of `approved`, `changes_requeste` and/or `commented`.                                                                                                                                                | 
 
 ## Behaviour
 

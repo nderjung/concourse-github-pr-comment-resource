@@ -64,6 +64,7 @@ type Source struct {
   Comments             []string `json:"comments"`
   CommenterAssociation []string `json:"commenter_association"`
   MapCommentMeta         bool   `json:"map_comment_meta"`
+  ReviewStates         []string `json:"review_states"`
   
   IgnoreStates         []string `json:"ignore_states"`
   IgnoreLabels         []string `json:"ignore_labels"`
@@ -145,6 +146,18 @@ func (source *Source) requestsState(state string) bool {
   }
 
   return ret
+}
+
+// requestsReviewState checks whether the PR review matches the desired state
+func (source *Source) requestsReviewState(state string) bool {
+  state = strings.ToLower(state)
+  for _, s := range source.ReviewStates {
+    if state == strings.ToLower(s) {
+      return true
+    }
+  }
+
+  return false
 }
 
 // requestsLabels checks whether the source requests these set of labels
