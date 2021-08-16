@@ -32,6 +32,7 @@ package actions
 
 import (
   "os"
+  "sort"
   "strconv"
   "encoding/json"
 
@@ -56,17 +57,17 @@ type CheckRequest struct {
 // CheckResponse represents the structure Concourse expects on stdout
 type CheckResponse []Version
 
-func doCheckCmd(cmd *cobra.Command, args []string) {  
+func doCheckCmd(cmd *cobra.Command, args []string) {
   decoder := json.NewDecoder(os.Stdin)
   decoder.DisallowUnknownFields()
-  
+
   // Concourse passes .json on stdin
   var req CheckRequest
   if err := decoder.Decode(&req); err != nil {
     logger.Fatalf("Failed to decode to stdin: %s", err)
     return
   }
-  
+
   // Perform the check with the given request
   res, err := Check(req)
   if err != nil {
@@ -97,7 +98,7 @@ func Check(req CheckRequest) (*CheckResponse, error) {
   if len(req.Source.When) == 0 {
     req.Source.When = "latest"
   }
-  
+
   var versions CheckResponse
   var version *Version
 
@@ -171,7 +172,7 @@ func Check(req CheckRequest) (*CheckResponse, error) {
       }
     }
 
-    // Only save the latest 
+    // Only save the latest
     if req.Source.When == "latest" && latestCommentIsMatch {
       versions = append(versions, *version)
     }
@@ -185,7 +186,7 @@ func Check(req CheckRequest) (*CheckResponse, error) {
     latestReviewIsMatch := false
 
     for _, review := range reviews {
-      // Ignore reviews which do not approve the 
+      // Ignore reviews which do not approve the
       if !req.Source.requestsReviewState(*review.State) {
         latestReviewIsMatch = false
         continue
@@ -215,11 +216,15 @@ func Check(req CheckRequest) (*CheckResponse, error) {
       }
     }
 
-    // Only save the latest 
+    // Only save the latest
     if req.Source.When == "latest" && latestReviewIsMatch {
       versions = append(versions, *version)
     }
   }
+
+  sort.Slice(versions, func(i, j int) bool {
+    return versions[i].CommentID < versions[j].CommentID
+  })
 
   return &versions, nil
 }
