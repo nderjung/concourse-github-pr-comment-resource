@@ -157,6 +157,7 @@ func Check(req CheckRequest) (*CheckResponse, error) {
 
       // Add the comment ID to the list of versions we want Concourse to see
       version = &Version{
+        CreatedAt: strconv.FormatInt(comment.CreatedAt.Unix(), 10),
         PrID:      strconv.Itoa(*pull.Number),
         CommentID: strconv.FormatInt(*comment.ID, 10),
       }
@@ -201,6 +202,7 @@ func Check(req CheckRequest) (*CheckResponse, error) {
 
       // Add the comment ID to the list of versions we want Concourse to see
       version = &Version{
+        CreatedAt: strconv.FormatInt(review.SubmittedAt.Unix(), 10),
         PrID:     strconv.Itoa(*pull.Number),
         ReviewID: strconv.FormatInt(*review.ID, 10),
       }
@@ -223,7 +225,7 @@ func Check(req CheckRequest) (*CheckResponse, error) {
   }
 
   sort.Slice(versions, func(i, j int) bool {
-    return versions[i].CommentID < versions[j].CommentID
+    return versions[i].CreatedAt < versions[j].CreatedAt
   })
 
   return &versions, nil

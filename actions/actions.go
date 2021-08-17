@@ -66,7 +66,7 @@ type Source struct {
   MapCommentMeta         bool   `json:"map_comment_meta"`
   ReviewStates         []string `json:"review_states"`
   When                   string `json:"when"` // all, latest, first
-  
+
   IgnoreStates         []string `json:"ignore_states"`
   IgnoreLabels         []string `json:"ignore_labels"`
   IgnoreComments       []string `json:"ignore_comments"`
@@ -74,6 +74,7 @@ type Source struct {
 
 // Version communicated with Concourse.
 type Version struct {
+  CreatedAt string `json:"created_at"`
   PrID      string `json:"pr_id"`
   ReviewID  string `json:"review_id"`
   CommentID string `json:"comment_id"`
@@ -137,7 +138,7 @@ func (source *Source) requestsState(state string) bool {
       }
     }
   }
-  
+
   // Ensure ignored states
   for _, s := range source.IgnoreStates {
     if s == state {
