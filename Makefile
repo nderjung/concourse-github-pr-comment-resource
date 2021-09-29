@@ -47,7 +47,6 @@ GO           ?= go
 GOFMT        ?= gofmt
 GOLANGCILINT ?= golangci-lint
 GORELEASER   ?= goreleaser
-SUDO         ?= sudo
 
 # Misc
 Q            ?= @
@@ -110,11 +109,11 @@ ci-static-analysis:
 
 .PHONY: ci-install-go-tools
 ci-install-go-tools:
-	$(Q)curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | $(SUDO) sh -s -- -b /usr/local/bin/ latest
+	$(Q)curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b /usr/local/bin/ latest
 
 .PHONY: ci-install-ci-tools
 ci-install-ci-tools:
-	$(Q)curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | $(SUDO) sh -s -- -b /usr/local/bin/ "v0.146.0"
+	$(Q)curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh -s -- -b /usr/local/bin/ "v0.146.0"
 
 .PHONY: ci-docker-login
 ci-docker-login:
