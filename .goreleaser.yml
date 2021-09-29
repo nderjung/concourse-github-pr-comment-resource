@@ -12,9 +12,8 @@ builds:
     ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.buildTime={{.Date}}`.
 
 dockers:
-  - binaries:
-      - github-pr-comment
-    dockerfile: Dockerfile
+  - dockerfile: Dockerfile
+    use: docker
     # todo: on 1.0 remove 'v' prefix
     image_templates:
       - "ndrjng/concourse-github-pr-comment-resource:latest"
