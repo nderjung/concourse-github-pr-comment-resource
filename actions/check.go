@@ -128,7 +128,7 @@ func Check(req CheckRequest) (*CheckResponse, error) {
     }
 
     // Ignore drafts
-    if *pull.Draft {
+    if req.Source.IgnoreDrafts && *pull.Draft {
       continue
     }
 
