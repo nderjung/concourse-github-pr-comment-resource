@@ -70,6 +70,7 @@ type Source struct {
   IgnoreStates         []string `json:"ignore_states"`
   IgnoreLabels         []string `json:"ignore_labels"`
   IgnoreComments       []string `json:"ignore_comments"`
+  IgnoreDrafts           bool   `json:"ignore_drafts"`
 }
 
 // Version communicated with Concourse.
