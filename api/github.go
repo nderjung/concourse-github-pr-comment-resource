@@ -96,13 +96,13 @@ func NewGithubClient(repo string, accessToken string, skipSSL bool, githubEndpoi
       AccessToken: accessToken,
     },
   ))
-  
+
   if githubEndpoint != "" {
     endpoint, err := url.Parse(githubEndpoint)
     if err != nil {
       return nil, fmt.Errorf("failed to parse v3 endpoint: %s", err)
     }
-    
+
     client, err = github.NewEnterpriseClient(endpoint.String(), endpoint.String(), oauth2Client)
     if err != nil {
       return nil, err
@@ -121,12 +121,12 @@ func NewGithubClient(repo string, accessToken string, skipSSL bool, githubEndpoi
 // ListPullRequests returns the list of pull requests for the configured repo
 func (c *GithubClient) ListPullRequests() ([]*github.PullRequest, error) {
   pulls, _, err := c.Client.PullRequests.List(
-    context.TODO(), 
+    context.TODO(),
     c.Owner,
     c.Repository,
     &github.PullRequestListOptions{
       // We want all states so we can sort through them later
-      State: "all",
+      State: "open",
       ListOptions: github.ListOptions{
         // TODO: We need to break up requests and be good API consumers
         PerPage: 1000,
@@ -203,7 +203,7 @@ func (c *GithubClient) GetPullRequestComment(commentID int64) (*github.IssueComm
   if err != nil {
     return nil, err
   }
-  
+
   return comment, nil
 }
 
@@ -219,7 +219,7 @@ func (c *GithubClient) GetPullRequestReview(prID int, reviewID int64) (*github.P
   if err != nil {
     return nil, err
   }
-  
+
   return review, nil
 }
 
@@ -310,7 +310,7 @@ func (c *GithubClient) RemovePullRequestLabels(prID int, labels []string) error 
       prID,
       l,
     )
-    
+
     if err != nil {
       return err
     }
@@ -356,7 +356,7 @@ func parseRepository(s string) (string, string, error) {
   return parts[0], parts[1], nil
 }
 
-// ParseCommentHTMLURL takes in a standard issue URL and returns the issue 
+// ParseCommentHTMLURL takes in a standard issue URL and returns the issue
 // number, e.g.:
 // https://github.com/octocat/Hello-World/issues/1347#issuecomment-1
 func ParseCommentHTMLURL(prUrl string) (int, error) {
