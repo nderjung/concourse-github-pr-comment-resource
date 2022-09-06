@@ -303,7 +303,7 @@ func (c *GithubClient) AddPullRequestLabels(prID int, labels []string) error {
 // labels given the relative pull request ID to the configured repo
 func (c *GithubClient) RemovePullRequestLabels(prID int, labels []string) error {
   for _, l := range labels {
-    _, err := c.Client.Issues.RemoveLabelForIssue(
+    response, err := c.Client.Issues.RemoveLabelForIssue(
       context.TODO(),
       c.Owner,
       c.Repository,
@@ -311,7 +311,7 @@ func (c *GithubClient) RemovePullRequestLabels(prID int, labels []string) error 
       l,
     )
     
-    if err != nil {
+    if err != nil && response.StatusCode != http.StatusNotFound {
       return err
     }
   }
